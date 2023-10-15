@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 import time
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
 from model import AIModel
 import sys
 import os
+from pathlib import Path
 
-UPLOAD_FOLDER = "/code"
+UPLOAD_FOLDER = os.path.join("/code", "static")
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -36,12 +37,16 @@ def upload_file():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             print("predict(file.filename): ".format(file.filename), file = sys.stdout)
-            inf = predict(file.filename)
-            return {"label": inf["label"], "confidence": float("{:.4}".format(inf["confidence"])) }
+            img_location = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            inf = predict(img_location)
+            #inf = predict(file.filename)
+            #return {"label": inf["label"], "confidence": float("{:.4}".format(inf["confidence"])) }
+            #return "<h1>Animal Information</h1><img src={} width='150' height='150'><strong>Class: {}</strong><strong>confidence: {}</strong>".format(img_location, inf["label"], inf["confidence"])
+            return render_template("index.html", user_image = os.path.join("static", file.filename), label = inf["label"], confidence = "{:.4}".format(float(inf["confidence"])))
     return '''
     <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
+    <title>Upload your image</title>
+    <h1>Upload Cougar/Leopard image</h1>
     <form method=post enctype=multipart/form-data>
     <input type=file name=file>
     <input type=submit value=Upload>
