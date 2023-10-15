@@ -1,0 +1,5 @@
+services:
+ web:
+  build: .
+  ports:
+   - "9191:9191"
